@@ -1,6 +1,7 @@
+const { env, db } = require("../../config");
 const { ApiError, sendAccountVerificationEmail } = require("../../utils");
 const { findAllStudents, findStudentDetail, findStudentToSetStatus, addOrUpdateStudent } = require("./students-repository");
-const { findUserById } = require("../../shared/repository");
+const { findUserById, processDBRequest } = require("../../shared/repository");
 
 const checkStudentId = async (id) => {
     const isStudentFound = await findUserById(id);
@@ -70,10 +71,35 @@ const setStudentStatus = async ({ userId, reviewerId, status }) => {
 }
 
 const deleteStudent = async (id) => {
-    const query = `DELETE FROM users WHERE id = $1 AND role_id = 3`;
-    const queryParams = [id];
-    const { rowCount } = await processDBRequest({ query, queryParams });
-    return rowCount;
+    await checkStudentId(id);
+    
+    try {
+        const client = await db.connect();
+        try {
+            await client.query('BEGIN');
+            
+            const deleteProfileQuery = `DELETE FROM user_profiles WHERE user_id = $1;`;
+            await client.query(deleteProfileQuery, [id]);
+            
+            const deleteUserQuery = `DELETE FROM users WHERE id = $1`;
+            const result = await client.query(deleteUserQuery, [id]);
+            
+            if (result.rowCount <= 0) {
+                throw new Error("No rows deleted");
+            }
+            
+            await client.query('COMMIT');
+            return { message: "Student deleted successfully" };
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
+        }
+    } catch (error) {
+        console.error("Error deleting student:", error);
+        throw new ApiError(500, "Unable to delete student due to database constraints");
+    }
 };
 
 module.exports = {

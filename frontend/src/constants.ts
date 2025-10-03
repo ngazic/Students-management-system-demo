@@ -25,6 +25,7 @@ export const menuItemTexts: Record<string, string> = {
   DISABLE_STUDENT_STATUS: 'Disable Student',
   RESEND_VERIFICATION_EMAIL_TO_USER: 'Resend Verification Email',
   RESEND_PWD_LINK_EMAIL_TO_USER: 'Resend Password Setup Link',
+  DELETE_USER: 'Delete User',
   RESET_USER_PWD: 'Reset User Password',
   APPROVE_NOTICE: 'Approve Notice',
   REJECT_NOTICE: 'Reject Notice',
