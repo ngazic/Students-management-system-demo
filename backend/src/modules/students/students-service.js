@@ -69,10 +69,18 @@ const setStudentStatus = async ({ userId, reviewerId, status }) => {
     return { message: "Student status changed successfully" };
 }
 
+const deleteStudent = async (id) => {
+    const query = `DELETE FROM users WHERE id = $1 AND role_id = 3`;
+    const queryParams = [id];
+    const { rowCount } = await processDBRequest({ query, queryParams });
+    return rowCount;
+};
+
 module.exports = {
     getAllStudents,
     getStudentDetail,
     addNewStudent,
     setStudentStatus,
     updateStudent,
+    deleteStudent,
 };
